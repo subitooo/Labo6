@@ -1,7 +1,5 @@
 <?php
-/**
- * Класс для работы с API
- */
+/*Класс для работы с API*/
 class ApiClient {
     private $baseUrl;
     private $headers;
