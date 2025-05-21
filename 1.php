@@ -1,57 +1,51 @@
 <?php
 
-// 1. GET-запрос
-function performGetRequest() {
-    $url = 'https://jsonplaceholder.typicode.com/posts';
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($response, true);
-}
+// 1. GET
+$curl = curl_init('https://jsonplaceholder.typicode.com/posts');
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+$response = curl_exec($curl);
+curl_close($curl);
+curl_close($curl);
+echo "GET: " . $response . "\n";
 
-// 2. POST-запрос
-function performPostRequest() {
-    $url = 'https://jsonplaceholder.typicode.com/posts';
-    $data = [
+// 2. POST
+$curl = curl_init('https://jsonplaceholder.typicode.com/posts');
+curl_setopt_array($curl, [
+    CURLOPT_POST => true,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+    CURLOPT_POSTFIELDS => json_encode([
         'title' => 'New post',
         'body' => 'Content',
         'userId' => 1
-    ];
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($response, true);
-}
+    ])
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+echo "POST: " . $response . "\n";
 
-// 3. PUT-запрос
-function performPutRequest() {
-    $url = 'https://jsonplaceholder.typicode.com/posts/1';
-    $data = [
-        'title' => 'Обновленный заголовок',
-        'body' => 'Обновленное содержание'
-    ];
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($response, true);
-}
+// 3. PUT
+$curl = curl_init('https://jsonplaceholder.typicode.com/posts/1');
+curl_setopt_array($curl, [
+    CURLOPT_CUSTOMREQUEST => 'PUT',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+    CURLOPT_POSTFIELDS => json_encode([
+        'title' => 'Updated title',
+        'body' => 'Updated content',
+        'userId' => 1
+    ])
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+echo "PUT: " . $response . "\n";
 
-// 4. DELETE-запрос
-function performDeleteRequest() {
-    $url = 'https://jsonplaceholder.typicode.com/posts/1';
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    return $response === '' ? 'Удалено' : 'Ошибка';
-}
+// 4. DELETE
+$curl = curl_init('https://jsonplaceholder.typicode.com/posts/1');
+curl_setopt_array($curl, [
+    CURLOPT_CUSTOMREQUEST => 'DELETE',
+    CURLOPT_RETURNTRANSFER => true
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+echo "DELETE: " . $response . "\n";

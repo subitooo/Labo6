@@ -1,73 +1,59 @@
 <?php
-/*Класс для работы с API*/
 class ApiClient {
-    private $baseUrl;
-    private $headers;
-    private $authToken;
+    private $base;
+    private $auth;
 
-    public function __construct($baseUrl, $authToken = null) {
-        $this->baseUrl = $baseUrl;
-        $this->authToken = $authToken;
-        $this->headers = ['Content-Type: application/json'];
+    public function __construct($base_url, $user, $pass) {
+        $this->base = trim($base_url, '/');
+        $this->auth = 'Authorization: Basic '.base64_encode("$user:$pass");
     }
 
-    private function sendRequest($method, $endpoint, $data = null) {
-        $url = $this->baseUrl . $endpoint;
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    private function call($method, $path, $data = null) {
+        // Собираем полный URL
+        $full_url = $this->base.'/'.ltrim($path, '/');
 
-        // Аутентификация
-        if ($this->authToken) {
-            $this->headers[] = "Authorization: Bearer {$this->authToken}";
-        }
+        // Настройка CURL
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $full_url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            $this->auth,
+            'Content-Type: application/json'
+        ]);
 
-        // Настройка метода
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-        } elseif ($method !== 'GET') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        }
-
-        // Передача данных
+        // Добавляем данные если есть
         if ($data) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
         }
 
-        // Заголовки
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
+        // Выполняем запрос
+        $result = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
+        curl_close($curl);
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        // Логирование (можно добавить запись в файл)
-        error_log("Request: $method $url - Code: $httpCode");
-
-        if ($error) {
-            throw new Exception("cURL Error: $error");
-        }
-
-        if ($httpCode >= 400) {
-            throw new Exception("API Error: HTTP $httpCode");
-        }
-
-        return json_decode($response, true);
+        // Возвращаем результат
+        return [
+            'code' => $status,
+            'error' => $error ? $error : false,
+            'response' => json_decode($result, true)
+        ];
     }
 
-    public function get($endpoint) {
-        return $this->sendRequest('GET', $endpoint);
+    public function get($path) {
+        return $this->call('GET', $path);
     }
 
-    public function post($endpoint, $data) {
-        return $this->sendRequest('POST', $endpoint, $data);
+    public function post($path, $data) {
+        return $this->call('POST', $path, $data);
     }
 
-    public function put($endpoint, $data) {
-        return $this->sendRequest('PUT', $endpoint, $data);
+    public function put($path, $data) {
+        return $this->call('PUT', $path, $data);
     }
 
-    public function delete($endpoint) {
-        return $this->sendRequest('DELETE', $endpoint);
+    public function delete($path) {
+        return $this->call('DELETE', $path);
     }
 }

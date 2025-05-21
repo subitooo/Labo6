@@ -37,3 +37,24 @@ function getWithParams($url, $params) {
     curl_close($curl);
     return json_decode($result, true);
 }
+
+// Примеры 
+
+echo "1. GET с заголовками:\n";
+print_r(getWithHeaders('https://jsonplaceholder.typicode.com/posts/1', [
+    'Authorization: Bearer 123',
+    'X-Custom-Header: test'
+]));
+
+echo "\n2. Отправка JSON:\n";
+print_r(sendJson('https://jsonplaceholder.typicode.com/posts', [
+    'title' => 'New Post',
+    'body' => 'Content',
+    'userId' => 1
+]));
+
+echo "\n3. GET с параметрами:\n";
+print_r(getWithParams('https://jsonplaceholder.typicode.com/posts', [
+    'userId' => 1,
+    '_limit' => 3
+]));
